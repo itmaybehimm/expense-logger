@@ -16,4 +16,5 @@ class Log(models.Model):
 
 class Item(models.Model):
     log_id = models.ForeignKey(Log, on_delete=models.CASCADE)
+    name = models.CharField(max_length=40)
     amount = models.DecimalField(max_digits=6, decimal_places=2)
