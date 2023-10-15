@@ -1,3 +1,5 @@
+import hashlib
+import datetime
 
 
 def password_valid(password):
@@ -25,3 +27,13 @@ def password_valid(password):
         return True
     else:
         return False
+
+
+def passwordSHA256(password):
+    pass_obj = hashlib.sha256(password.encode('UTF-8'))
+    return pass_obj.hexdigest()
+
+
+def strtodate(str):
+    date_obj = datetime.datetime.strptime(str, '%m-%d-%Y').date()
+    return date_obj

@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'logs',
-    'user_profile'
+    'user_profile',
+    'rest_framework.authtoken'
 ]
 
 MIDDLEWARE = [
@@ -111,6 +112,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ]
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
