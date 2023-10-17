@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+
 # Create your models here.
 
 User._meta.get_field('email')._unique = True
@@ -12,7 +13,7 @@ class UserProfile(models.Model):
         User, on_delete=models.CASCADE, related_name="user_profile")
     otp = models.CharField(max_length=6, null=True, default=None)
     verified = models.BooleanField(default=False)
-    otp_requested = models.BooleanField(default=False)
+    otp_created_on = models.DateTimeField(null=True, default=None)
     dob = models.DateField()
 
     def __str__(self):

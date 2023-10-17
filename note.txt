@@ -1,0 +1,3 @@
+If you get ssl error while running, upgrade certifi: 
+pip install –upgrade certifi in main pc terminal
+and pipenv update certifi in virtual enviornment
