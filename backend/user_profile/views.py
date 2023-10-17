@@ -1,43 +1,61 @@
-from django.shortcuts import render
 from django.contrib.auth.models import User
-from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from .serializers import UserSerializer
-from .customfunctions import password_valid, strtodate, generateOTP, customSHA256
+from .customfunctions import password_valid, strtodate, generateOTP, customSHA256, username_valid
 import json
 from django.conf import settings
 from django.core.mail import send_mail
 import datetime
-
+from .custompermissions import IsOtpAllowed, IsVerified
+from rest_framework.permissions import IsAuthenticated, AllowAny
 # Create your views here.
 
 
-@api_view(['POST'])
-def signup_view(request):
-    if (request.method == 'POST'):
-        data = request.POST
+class UserView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'DELETE':
+            # Apply IsAuthenticated for DELETE requests
+            return [IsAuthenticated()]
+        if self.request.method == 'GET':
+            return [IsVerified()]
+        if self.request.method == 'PATCH':
+            return [IsVerified()]
+        if self.request.method == 'POST':
+            return [AllowAny()]
 
-        userdata = {
-            'username': data.get('username'),
-            'password': data.get('password'),
-            'email': data.get('email'),
-            'user_profile': json.loads(data.get('user_profile'))
-        }
+    def get(self, request):
+        user = request.user
+        user_serializer = UserSerializer(user)
+        return Response(user_serializer.data, status=status.HTTP_200_OK)
 
-        if (not password_valid(userdata['password'])):
-            return Response({'message': 'password must contain one lower case, one upper case, one digit and one special character'}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        data = request.POST.dict()
 
-        # convert date string to date obj
-        try:
-            userdata['user_profile']['dob'] = strtodate(
-                userdata['user_profile']['dob'])
-        except Exception as e:
-            return Response({'message': 'Date format incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+        user_profile_data = data.get('user_profile')
 
-        user_serializer = UserSerializer(data=userdata)
+        if user_profile_data:
+            data['user_profile'] = json.loads(user_profile_data)
+            if 'dob' in user_profile_data:
+                try:
+                    data['user_profile']['dob'] = strtodate(
+                        data['user_profile']['dob'])
+            # if date is after today then raise error
+                    pass
+
+                except Exception as e:
+                    return Response({'message': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if (data.get('username')):
+            if not username_valid(data.get('username')):
+                return Response({'message': 'username invalid'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if (data.get('password')):
+            if not password_valid(data.get('password')):
+                return Response({'message': 'password must contain one lower case, one upper case, one digit and one special character'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_serializer = UserSerializer(data=data)
 
         if (user_serializer.is_valid()):
             saved_user = user_serializer.save()
@@ -46,10 +64,53 @@ def signup_view(request):
         else:
             return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def patch(self, request):
+        # Create a mutable copy else data['user profile'] not allowrd
+        # for some reason query dict is not working need to look so converted to python dict
+        data = request.POST.dict()
+
+        user_profile_data = data.get('user_profile')
+        if user_profile_data:
+            # creates a list of json objects but serialzier ma many=false xa need better solution
+            data['user_profile'] = json.loads(user_profile_data)
+            if 'dob' in user_profile_data:
+                try:
+                    data['user_profile']['dob'] = strtodate(
+                        data['user_profile']['dob'])
+            # if date is after today then raise error
+                    pass
+
+                except Exception as e:
+                    return Response({'message': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if (data.get('username')):
+            if not username_valid(data.get('username')):
+                return Response({'message': 'username invalid'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if (data.get('password')):
+            if not password_valid(data.get('password')):
+                return Response({'message': 'password must contain one lower case, one upper case, one digit and one special character'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        user_serializer = UserSerializer(user, data=data, partial=True)
+        if (user_serializer.is_valid()):
+            user = user_serializer.save()
+            return Response(UserSerializer(user).data, status=status.HTTP_202_ACCEPTED)
+        return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        try:
+            User.objects.get(pk=request.user.id).delete()
+            return Response({'message': f'Account deleted'}, status=status.HTTP_200_OK)
+        # except User.DoesNotExist:
+        #     return Response({'message': f'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'message': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class OtpViewClass(APIView):
     # Need to modify perfmission classes to authenticated but not verified
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOtpAllowed]
 
     def get(self, request):
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -76,7 +137,6 @@ class OtpViewClass(APIView):
                     otp)
                 sender = settings.EMAIL_HOST_USER
                 reciever = [user.email]
-                print(otp)
                 send_mail(
                     subject=subject,
                     message=message,

@@ -14,6 +14,7 @@ class UserProfile(models.Model):
     otp = models.CharField(max_length=6, null=True, default=None)
     verified = models.BooleanField(default=False)
     otp_created_on = models.DateTimeField(null=True, default=None)
+    password_reset = models.BooleanField(default=False)
     dob = models.DateField()
 
     def __str__(self):
