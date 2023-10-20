@@ -9,6 +9,7 @@ djangorestframework = "*"
 django-filter = "*"
 django-environ = "*"
 certifi = "*"
+pillow = "*"
 
 [dev-packages]
 

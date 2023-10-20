@@ -1,10 +1,10 @@
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .serializers import UserSerializer
-from .customfunctions import password_valid, strtodate, generateOTP, customSHA256, username_valid
-import json
+from .customfunctions import password_valid, generateOTP, customSHA256, username_valid
 from django.conf import settings
 from django.core.mail import send_mail
 import datetime
@@ -31,22 +31,7 @@ class UserView(APIView):
         return Response(user_serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        data = request.POST.dict()
-
-        user_profile_data = data.get('user_profile')
-
-        if user_profile_data:
-            data['user_profile'] = json.loads(user_profile_data)
-            if 'dob' in user_profile_data:
-                try:
-                    data['user_profile']['dob'] = strtodate(
-                        data['user_profile']['dob'])
-            # if date is after today then raise error
-                    pass
-
-                except Exception as e:
-                    return Response({'message': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
-
+        data = request.data
         if (data.get('username')):
             if not username_valid(data.get('username')):
                 return Response({'message': 'username invalid'}, status=status.HTTP_400_BAD_REQUEST)
@@ -67,21 +52,7 @@ class UserView(APIView):
     def patch(self, request):
         # Create a mutable copy else data['user profile'] not allowrd
         # for some reason query dict is not working need to look so converted to python dict
-        data = request.POST.dict()
-
-        user_profile_data = data.get('user_profile')
-        if user_profile_data:
-            # creates a list of json objects but serialzier ma many=false xa need better solution
-            data['user_profile'] = json.loads(user_profile_data)
-            if 'dob' in user_profile_data:
-                try:
-                    data['user_profile']['dob'] = strtodate(
-                        data['user_profile']['dob'])
-            # if date is after today then raise error
-                    pass
-
-                except Exception as e:
-                    return Response({'message': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
 
         if (data.get('username')):
             if not username_valid(data.get('username')):
@@ -102,8 +73,6 @@ class UserView(APIView):
         try:
             User.objects.get(pk=request.user.id).delete()
             return Response({'message': f'Account deleted'}, status=status.HTTP_200_OK)
-        # except User.DoesNotExist:
-        #     return Response({'message': f'User not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'message': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -183,3 +152,15 @@ class OtpViewClass(APIView):
             return Response({'message': f'otp incorrect'}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'message': f'otp not requested'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@permission_classes([IsVerified])
+@api_view(['GET'])
+def specific_user_view(request, u_id):
+    if request.method == 'GET':
+        try:
+            user = User.objects.get(pk=u_id)
+            return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({"message':'User doesn't exist"}, status=status.HTTP_404_NOT_FOUND)

@@ -6,5 +6,6 @@ urlpatterns = [
     path('', views.UserView.as_view()),
     path('api-token-auth/', tokenviews.obtain_auth_token),
     # otpverifyrequest POST otpgenerate GET Token Based
-    path('otp/', views.OtpViewClass.as_view())
+    path('otp/', views.OtpViewClass.as_view()),
+    path('<int:u_id>', views.specific_user_view)
 ]

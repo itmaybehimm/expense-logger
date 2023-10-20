@@ -10,21 +10,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ('verified', 'dob')
+        fields = ('verified', 'dob', 'profile_pic')
         extra_kwargs = {'verified': {'read_only': True}}
 
 
 class UserSerializer(serializers.ModelSerializer):
-    user_profile = UserProfileSerializer(many=False)
+    user_profile = UserProfileSerializer(many=False, read_only=True)
+    dob = serializers.DateField(write_only=True)
+    profile_pic = serializers.ImageField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'user_profile', 'password')
+        fields = ('id', 'username', 'email', 'user_profile',
+                  'password', 'dob', 'profile_pic')
         # So that we dont send password during user request
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user_profile_data = validated_data.pop('user_profile')
+        user_profile_data = {}
+        user_profile_data['dob'] = validated_data.pop('dob')
+        user_profile_data['profile_pic'] = validated_data.pop('profile_pic')
         # password is in plain text, need to change it to django encrpytion
         password = validated_data.pop('password')
         user = User.objects.create(
@@ -33,7 +38,12 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
-        user_profile_data = validated_data.pop('user_profile', {})
+        user_profile_data = {}
+        if 'dob' in validated_data:
+            user_profile_data['dob'] = validated_data.pop('dob')
+        if 'profile_pic' in validated_data:
+            user_profile_data['profile_pic'] = validated_data.pop(
+                'profile_pic')
         if 'password' in validated_data:
             validated_data['password'] = make_password(
                 validated_data['password'])

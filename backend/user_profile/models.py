@@ -11,11 +11,12 @@ User._meta.get_field('email')._unique = True
 class UserProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="user_profile")
-    otp = models.CharField(max_length=6, null=True, default=None)
+    otp = models.CharField(max_length=64, null=True, default=None)
     verified = models.BooleanField(default=False)
     otp_created_on = models.DateTimeField(null=True, default=None)
     password_reset = models.BooleanField(default=False)
     dob = models.DateField()
+    profile_pic = models.ImageField(null=True, upload_to='profile_pics/')
 
     def __str__(self):
         return self.user.username
