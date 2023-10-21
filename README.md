@@ -28,6 +28,10 @@
 
 ### add following to the .env file
 
-> EMAIL_HOST_USER='a email'
+> EMAIL_HOST_USER='a gmail email address'
 
 > EMAIL_HOST_PASSWORD='app password'
+
+# Frontend Progessing
+
+# Database to be migrated to MySQL
