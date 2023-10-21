@@ -32,6 +32,8 @@
 
 > EMAIL_HOST_PASSWORD='app password'
 
+## endpoints documentation coming soon
+
 ## Frontend Progessing
 
 ## Database to be migrated to MySQL
