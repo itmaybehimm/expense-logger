@@ -32,6 +32,6 @@
 
 > EMAIL_HOST_PASSWORD='app password'
 
-# Frontend Progessing
+## Frontend Progessing
 
-# Database to be migrated to MySQL
+## Database to be migrated to MySQL
