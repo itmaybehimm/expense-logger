@@ -3,10 +3,10 @@ from .custompermissions import IsVerified
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
-from .serializers import LogSerialzier
-from .models import Log
+from .serializers import LogSerialzier, ItemSerializer
+from .models import Log, Item
 from django.core.paginator import Paginator
-from .paginations import CustomPagination
+
 # Create your views here.
 
 
@@ -98,3 +98,74 @@ class LogView(APIView):
 
         except Log.DoesNotExist:
             return Response(self.log_not_found_message, status=status.HTTP_404_NOT_FOUND)
+
+
+class ItemGroupView(APIView):
+    permission_classes = [IsVerified]
+
+    def get(self, request, log_id):
+        try:
+            log = Log.objects.get(pk=log_id)
+        except Log.DoesNotExist:
+            return Response({'message': 'Log not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        users_involved = log.users_involved.all()
+        if (not request.user in users_involved):
+            return Response({'message': 'This user has nothing to do with the log'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        items = log.items.all()
+        items_serializer = ItemSerializer(items, many=True)
+        return Response(items_serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, log_id):
+        try:
+            log = Log.objects.get(pk=log_id)
+        except Log.DoesNotExist:
+            return Response({'message': 'Log not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if (request.user != log.created_by):
+            return Response({'message': 'Only creator can add items to log'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        data = request.POST
+        items_serializer = ItemSerializer(data=data, context={'log': log})
+        if (items_serializer.is_valid()):
+            try:
+                items_serializer.save()
+                return Response(items_serializer.data, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                return Response({'message': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response(items_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ItemView(APIView):
+    permission_classes = [IsVerified]
+
+    def delete(self, request, log_id, item_id):
+        try:
+            log = Log.objects.get(pk=log_id)
+        except Log.DoesNotExist:
+            return Response({'message': 'Log not found'}, status=status.HTTP_404_NOT_FOUND)
+        if (request.user != log.created_by):
+            return Response({'message': 'Log can only be deleted by creator'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            Item.objects.get(pk=item_id).delete()
+            return Response({'message': 'Item deleted scucessfully'}, status=status.HTTP_200_OK)
+
+        except Item.DoesNotExist:
+            return Response({'message': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, log_id, item_id):
+        try:
+            log = Log.objects.get(pk=log_id)
+        except Log.DoesNotExist:
+            return Response({'message': 'Log not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        users_involved = log.users_involved.all()
+        if (not request.user in users_involved):
+            return Response({'message': 'This user has nothing to do with the log'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        item = Item.objects.get(pk=item_id)
+        item_serializer = ItemSerializer(item)
+        return Response(item_serializer.data, status=status.HTTP_200_OK)

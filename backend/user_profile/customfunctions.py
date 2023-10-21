@@ -47,9 +47,12 @@ def username_valid(username):
     return True
 
 
-def customSHA256(str):
-    str_obj = hashlib.sha256(str.encode('UTF-8'))
-    return str_obj.hexdigest()
+def customSHA256(string):
+    if type(string) != str:
+        string = str(string)
+    h = hashlib.new("SHA256")
+    h.update(string.encode())
+    return h.hexdigest()
 
 
 def strtodate(str):

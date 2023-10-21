@@ -3,13 +3,7 @@ from .models import Item, Log
 from user_profile.serializers import UserSerializer
 from user_profile.models import UserProfile
 from django.contrib.auth.models import User
-
-
-class ItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Item
-        fields = ('log_id', 'name', 'amount')
-        extra_kwargs = {'log_id': {'write_only': True}}
+from .customfunctions import customSHA256
 
 
 class UserInvolvedProfileSerializer(serializers.ModelSerializer):
@@ -24,6 +18,42 @@ class UserInvolvedSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'user_profile')
+
+
+class ItemSerializer(serializers.ModelSerializer):
+    splitted_among = UserInvolvedSerializer(many=True, read_only=True)
+    splitted_among_data = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Item
+        fields = ('name', 'id', 'amount',
+                  'splitted_among', 'splitted_among_data')
+        extra_kwargs = {'id': {'read_only': True}}
+
+    def create(self, validated_data):
+        splitted_among_data = validated_data.pop('splitted_among_data')
+        splitted_among_data = splitted_among_data.split(",")
+        user_list = []
+        users_invovled = self.context['log'].users_involved.all()
+
+        for username in splitted_among_data:
+            temp_user = User.objects.get(username=username)
+            if (not temp_user.user_profile.verified):
+                raise Exception("One or more users are not verified")
+            if (not temp_user in users_invovled):
+                raise Exception(
+                    "One or more users are not involved in this log")
+
+            user_list.append(temp_user)
+
+        item = Item.objects.create(
+            **validated_data, log_id=self.context['log'])
+
+        for user in user_list:
+            item.splitted_among.add(user)
+
+        item.save()
+        return item
 
 
 class LogSerialzier(serializers.ModelSerializer):
@@ -66,6 +96,8 @@ class LogSerialzier(serializers.ModelSerializer):
         for user in user_list:
             log.users_involved.add(user)
 
+        log.log_hash = customSHA256(log.id)
+        log.save()
         return log
 
     def update(self, instance, validated_data):
