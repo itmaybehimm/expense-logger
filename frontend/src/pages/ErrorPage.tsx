@@ -1,4 +1,4 @@
-import React from "react";
+import { FC } from "react";
 import { useRouteError } from "react-router-dom";
 
 interface ErrorPageInterface {
@@ -6,7 +6,7 @@ interface ErrorPageInterface {
   message: string;
 }
 
-const ErrorPage: React.FC = function () {
+const ErrorPage: FC = function () {
   const error: ErrorPageInterface = useRouteError() as ErrorPageInterface;
   console.error(error);
 

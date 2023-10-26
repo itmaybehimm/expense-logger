@@ -4,11 +4,18 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import ErrorPage from "./pages/ErrorPage.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import LoginPage from "./pages/LoginPage.tsx";
 
-const router: any = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: "/",
+
     element: <div className="text-3xl font-bold underline">Hello world!</div>,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
     errorElement: <ErrorPage />,
   },
 ]);
