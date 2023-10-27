@@ -1,6 +1,8 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import { useState } from "react";
 import { passwordValid, usernameValid } from "../../utils/customFunctions.ts";
+import { useAppDispatch } from "../app/hooks.ts";
+import { getUser, loginUser } from "../features/authentication/loginThunk.ts";
 
 interface FormData {
   username: string;
@@ -10,6 +12,7 @@ interface FormData {
 interface FormValid {
   isUsernameValid: boolean;
   isPasswordValid: boolean;
+  wasFormSubmitted: boolean;
 }
 
 const initialFormState: FormData = {
@@ -20,6 +23,7 @@ const initialFormState: FormData = {
 const initialFormValidState: FormValid = {
   isUsernameValid: true,
   isPasswordValid: true,
+  wasFormSubmitted: false,
 };
 
 const LoginForm: React.FC = function () {
@@ -27,6 +31,7 @@ const LoginForm: React.FC = function () {
   const [formValidState, setFormValidState] = useState<FormValid>(
     initialFormValidState
   );
+  const dispatch = useAppDispatch();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -38,7 +43,6 @@ const LoginForm: React.FC = function () {
     //You are correct that when you replace the entire object with a new object, the change should be reflected in the state. However, React's state updates are asynchronous, and there may be situations where the new state is not immediately reflected when you read the state immediately after calling setState. This can lead to unexpected results when you are directly copying the previous state and making changes.
 
     //if username undefined then it won't go inside function for some reason empty string "" is undefined
-
     if (formData.username && usernameValid(formData.username)) {
       console.log("valid");
       setFormValidState((prevFormValidState) => ({
@@ -66,18 +70,25 @@ const LoginForm: React.FC = function () {
     }
   }
 
-  function handleSubmit(e: React.SyntheticEvent) {
+  function handleSubmit(e: React.SyntheticEvent): void {
     e.preventDefault();
-    formValidation();
+    setFormValidState((prevFormValidState) => ({
+      ...prevFormValidState,
+      wasFormSubmitted: true,
+    }));
+    if (formValidState.isPasswordValid && formValidState.isUsernameValid) {
+      dispatch(loginUser(formData)).then((response) => {
+        // response={type: 'auth/loginUser/fulfilled', payload: {…}, meta: {…}}
+        const token: string = response.payload.token;
+        dispatch(getUser(token));
+      });
+    }
   }
 
   //useEffect to notify form invalid we can use input.add class name
-  useEffect(() => {
-    console.log(formValidState);
-  }, [formValidState]);
 
   useEffect(() => {
-    console.log(formData);
+    formValidation();
   }, [formData]);
 
   return (
@@ -86,7 +97,8 @@ const LoginForm: React.FC = function () {
 
       <label className="flex flex-col">
         Username
-        {formValidState.isUsernameValid || <span>username invalid</span>}
+        {formValidState.wasFormSubmitted &&
+          (formValidState.isUsernameValid || <span>username invalid</span>)}
         <input
           //must use text else "" undefined and also it won't be string type
           type="text"
@@ -99,8 +111,9 @@ const LoginForm: React.FC = function () {
       </label>
 
       <label className="flex flex-col">
-        Password
-        {formValidState.isPasswordValid || <span>password invalid</span>}
+        Password:k27Gsd21@
+        {formValidState.wasFormSubmitted &&
+          (formValidState.isPasswordValid || <span>password invalid</span>)}
         <input
           className="border"
           type="password"

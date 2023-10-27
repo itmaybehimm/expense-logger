@@ -39,7 +39,7 @@ def password_valid(password):
 
 
 def username_valid(username):
-    if (username[0].isdigit() or len(username) < 8):
+    if (username[0].isdigit() or len(username) < 8 or username[0] == "_"):
         return False
     for i in username:
         if (not i.isdigit() and not i.islower() and not i == '_'):

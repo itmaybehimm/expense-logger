@@ -10,6 +10,7 @@ django-filter = "*"
 django-environ = "*"
 certifi = "*"
 pillow = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 
