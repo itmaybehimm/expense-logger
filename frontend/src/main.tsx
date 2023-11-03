@@ -20,6 +20,13 @@ const router = createBrowserRouter([
     element: <LoginPage />,
     errorElement: <ErrorPage />,
   },
+  {
+    path: "/home",
+    element: (
+      <div className="text-3xl font-bold underline">This is nome page</div>
+    ),
+    errorElement: <ErrorPage />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

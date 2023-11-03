@@ -39,6 +39,7 @@ export const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      //cases for logging in i.e getting auth token
       .addCase(loginUser.pending, (state: LoginState): void => {
         state.loading = true;
         state.user = {};
@@ -59,6 +60,7 @@ export const authSlice = createSlice({
         state.tokenSuccess = false;
         state.error = err.message;
       })
+      //cases for getting use information using the auth token
       .addCase(getUser.pending, (state: LoginState): void => {
         state.loading = true;
         state.userSuccess = false;
