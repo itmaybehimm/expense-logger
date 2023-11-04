@@ -10,6 +10,8 @@ import {
   loginUser,
 } from "../../features/authentication/loginThunk.ts";
 import { Link, useNavigate } from "react-router-dom";
+import { MdLockOutline } from "react-icons/md";
+import { CiUser } from "react-icons/ci";
 
 interface FormData {
   username: string;
@@ -22,6 +24,8 @@ const LoginForm: React.FC = function () {
   const [isUsernameValid, setIsUsernameValid] = useState(true);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
   const [wasFormSubmitted, setWasFormSubmitted] = useState(false);
+
+  wasFormSubmitted;
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -76,55 +80,57 @@ const LoginForm: React.FC = function () {
   return (
     <form
       id="login-form"
-      className="flex flex-col bg-yellow-300 h-full"
+      className="flex flex-col h-full items-center justify-center mt-6 gap-8 4k:gap-24"
       onSubmit={handleSubmit}
     >
-      <div className="h-1/4 justify-center items-center flex font-bold bg-blue-200">
-        Log into your account
+      <div className="flex flex-col w-full items-center justify-center gap-8 2k:gap-12 4k:gap-16">
+        <div className="text-cs-white flex items-center border-b-[1px] gap-1 2k:gap-2 4k:gap-4 md:min-w-[240px]  min-w-[180px] w-[66%] md:w-1/2 md:opacity-60 hover:opacity-100 input-login-text-res ">
+          <CiUser className="h-full" />
+          <input
+            //must use text else "" undefined and also it won't be string type
+            type="text"
+            className=" bg-transparent placeholder-cs-white focus:outline-none focus:placeholder:opacity-0 font-sans "
+            name="username"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+            }}
+          />
+        </div>
+        <div className=" flex flex-col items-center justify-start w-full">
+          <div className=" text-cs-white flex items-center border-b-[1px] gap-1 2k:gap-2 4k:gap-4 md:min-w-[240px] min-w-[180px] w-[66%] md:w-1/2 md:opacity-60 hover:opacity-100 input-login-text-res">
+            <MdLockOutline className="h-full" />
+            <input
+              className=" bg-transparent placeholder-cs-white focus:outline-none focus:placeholder:opacity-0 font-sans  "
+              type="password"
+              placeholder="Password"
+              name="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
+            />
+          </div>
+          <div className="min-w-[180px] md:min-w-[240px] w-[66%] md:w-1/2 flex justify-end ">
+            <Link
+              to="/forgot_password"
+              className="text-xs 2k:text-xl mt-2 text-cs-white md:opacity-60 hover:opacity-100"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </div>
       </div>
 
-      <div className="flex flex-col items-center">
-        <div> Login Using</div>
-        <div>photos</div>
-      </div>
-
-      <label className="flex flex-col p-2 items-center">
-        Username
-        {wasFormSubmitted && (isUsernameValid || <span>username invalid</span>)}
-        <input
-          //must use text else "" undefined and also it won't be string type
-          type="text"
-          className="border rounded-md w-3/4 md:w-1/2 max-w-md border-red-50 "
-          name="username"
-          value={username}
-          onChange={(e) => {
-            setUsername(e.target.value);
-          }}
-        />
-      </label>
-
-      <label className="flex flex-col p-2  items-center">
-        Password:k27Gsd21@
-        {wasFormSubmitted && (isPasswordValid || <span>password invalid</span>)}
-        <input
-          className="border"
-          type="password"
-          placeholder=""
-          name="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-        />
-      </label>
-      <div className="flex justify-between px-6">
-        <Link to="/signup" className="md:hidden">
-          Signup
-        </Link>
-        <Link to="/forgot_password">Forgot password?</Link>
-      </div>
-
-      <button type="submit">Log in</button>
+      <button
+        className="bg-cs-white min-w-[100px] max-h-[80px] w-[20%] max-w-[220px] aspect-[22/9] flex items-center justify-center rounded-full hover:scale-110 dark:bg-cs-white/20 hover:brightness-90 dark:hover:bg-cs-white/100 transition-all"
+        type="submit"
+      >
+        <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 inline-block text-transparent bg-clip-text normal-login-text-res ">
+          Log in
+        </span>
+      </button>
     </form>
   );
 };

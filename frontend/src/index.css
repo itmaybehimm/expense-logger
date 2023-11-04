@@ -1,3 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@layer base {
+  :root {
+    --color-bgwhite: 0deg 0% 100%;
+    --color-mercury: 0deg 0% 89%;
+    --color-bgblack: 0deg 0% 0%;
+    --color-accent-purple: 258deg 90% 66%;
+    --color-accent-violet: 292deg 84% 61%;
+  }
+}
+
+
+@layer components {
+  .huge-login-text-res {
+    @apply text-4xl xl:text-5xl 2xl:text-7xl 4k:text-9xl;
+  }
+  .normal-login-text-res{
+    @apply text-xs xl:text-base 2xl:text-xl 4k:text-3xl
+  }
+  .input-login-text-res{
+    @apply text-sm md:text-base lg:text-xl 2k:text-3xl 4k:text-4xl
+  }
+}
