@@ -4,14 +4,12 @@ import {
   passwordValid,
   usernameValid,
 } from "../../../utils/customFunctions.ts";
-import { useAppDispatch } from "../../app/hooks.ts";
-import {
-  getUser,
-  loginUser,
-} from "../../features/authentication/loginThunk.ts";
+import { useAppDispatch, useAppSelector } from "../../app/hooks.ts";
+import { loginUser } from "../../features/authentication/loginThunk.ts";
 import { Link, useNavigate } from "react-router-dom";
 import { MdLockOutline } from "react-icons/md";
 import { CiUser } from "react-icons/ci";
+import { displayPopup, hidePopup } from "../../features/popup/popupslice.tsx";
 
 interface FormData {
   username: string;
@@ -21,11 +19,10 @@ interface FormData {
 const LoginForm: React.FC = function () {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isUsernameValid, setIsUsernameValid] = useState(true);
-  const [isPasswordValid, setIsPasswordValid] = useState(true);
+  const [isUsernameValid, setIsUsernameValid] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [wasFormSubmitted, setWasFormSubmitted] = useState(false);
-
-  wasFormSubmitted;
+  const loading = useAppSelector((state) => state.auth.loading);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -33,48 +30,34 @@ const LoginForm: React.FC = function () {
   function handleSubmit(e: React.SyntheticEvent): void {
     e.preventDefault();
     setWasFormSubmitted(true);
-    if (isPasswordValid && isUsernameValid) {
-      const formData: FormData = {
-        username: username,
-        password: password,
-      };
+    if (!(isPasswordValid && isUsernameValid)) return;
 
-      dispatch(loginUser(formData)).then((response) => {
-        // response={type: 'auth/loginUser/fulfilled', payload: {…}, meta: {…}}
-        // response={type: 'auth/loginUser/rejected', payload: undefined, meta: {…}, error: {…}} if error
-        // console.log(response);
+    if (loading) return;
 
-        if (response.type === "auth/loginUser/fulfilled") {
-          const token: string = response.payload.token;
-          dispatch(getUser(token)).then(() => {
-            navigate("/home");
-          });
-        }
+    const formData: FormData = {
+      username: username,
+      password: password,
+    };
 
-        //handle error
-        if (response.type === "auth/loginUser/rejected") {
-          //can use user.state.error
-          console.log("something went wrong");
-        }
+    dispatch(loginUser(formData))
+      .unwrap()
+      .then(() => {
+        navigate("/home");
+      })
+      .catch((error) => {
+        dispatch(
+          displayPopup({ message: error.error_data, status: error.status })
+        );
+        setTimeout(() => dispatch(hidePopup()), 3000);
       });
-    }
   }
 
-  //useEffect to notify form invalid we can use input.add class name
-
   useEffect(() => {
-    //if username undefined then it won't go inside function for some reason empty string "" is falsy value
-    if (username && usernameValid(username)) {
-      setIsUsernameValid(true);
-    } else {
-      setIsUsernameValid(false);
-    }
+    if (usernameValid(username)) setIsUsernameValid(true);
+    else setIsUsernameValid(false);
 
-    if (password && passwordValid(password)) {
-      setIsPasswordValid(true);
-    } else {
-      setIsPasswordValid(false);
-    }
+    if (passwordValid(password)) setIsPasswordValid(true);
+    else setIsPasswordValid(false);
   }, [username, password]);
 
   return (
@@ -84,38 +67,55 @@ const LoginForm: React.FC = function () {
       onSubmit={handleSubmit}
     >
       <div className="flex flex-col w-full items-center justify-center gap-8 2k:gap-12 4k:gap-16">
-        <div className="text-cs-white flex items-center border-b-[1px] gap-1 2k:gap-2 4k:gap-4 md:min-w-[240px]  min-w-[180px] w-[66%] md:w-1/2 md:opacity-60 hover:opacity-100 input-login-text-res ">
+        <div className="text-cs-white flex items-center border-b-[1px] gap-1 2k:gap-2 4k:gap-4 md:min-w-[240px]  min-w-[180px] w-[66%] md:w-1/2 md:opacity-60 hover:opacity-100 input-login-text-res relative">
           <CiUser className="h-full" />
           <input
             //must use text else "" undefined and also it won't be string type
             type="text"
-            className=" bg-transparent placeholder-cs-white focus:outline-none focus:placeholder:opacity-0 font-sans "
+            className="bg-transparent placeholder-cs-white focus:outline-none focus:placeholder:opacity-0 font-sans "
             name="username"
             placeholder="Username"
+            minLength={8}
+            maxLength={20}
             value={username}
             onChange={(e) => {
               setUsername(e.target.value);
             }}
           />
+          {wasFormSubmitted &&
+            (isUsernameValid || (
+              <span className="small-login-text-res absolute top-[100%] pl-1 text-red">
+                Username is invalid.
+              </span>
+            ))}
         </div>
-        <div className=" flex flex-col items-center justify-start w-full">
-          <div className=" text-cs-white flex items-center border-b-[1px] gap-1 2k:gap-2 4k:gap-4 md:min-w-[240px] min-w-[180px] w-[66%] md:w-1/2 md:opacity-60 hover:opacity-100 input-login-text-res">
+        <div className=" flex flex-col items-center justify-start w-full ">
+          <div className=" text-cs-white flex items-center border-b-[1px] gap-1 2k:gap-2 4k:gap-4 md:min-w-[240px] min-w-[180px] w-[66%] md:w-1/2 md:opacity-60 hover:opacity-100 input-login-text-res relative">
             <MdLockOutline className="h-full" />
             <input
               className=" bg-transparent placeholder-cs-white focus:outline-none focus:placeholder:opacity-0 font-sans  "
               type="password"
               placeholder="Password"
+              minLength={8}
+              maxLength={20}
               name="password"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
               }}
             />
+            {wasFormSubmitted &&
+              (isPasswordValid || (
+                <span className="small-login-text-res absolute top-[100%] pl-1 text-red">
+                  Password is invalid
+                </span>
+              ))}
           </div>
+
           <div className="min-w-[180px] md:min-w-[240px] w-[66%] md:w-1/2 flex justify-end ">
             <Link
               to="/forgot_password"
-              className="text-xs 2k:text-xl mt-2 text-cs-white md:opacity-60 hover:opacity-100"
+              className="small-login-text-res mt-2 text-cs-white md:opacity-60 hover:opacity-100"
             >
               Forgot password?
             </Link>
@@ -124,12 +124,10 @@ const LoginForm: React.FC = function () {
       </div>
 
       <button
-        className="bg-cs-white min-w-[100px] max-h-[80px] w-[20%] max-w-[220px] aspect-[22/9] flex items-center justify-center rounded-full hover:scale-110 dark:bg-cs-white/20 hover:brightness-90 dark:hover:bg-cs-white/100 transition-all"
+        className=" min-w-[100px] max-h-[80px] w-[20%] max-w-[220px] aspect-[22/9] flex items-center justify-center login-button"
         type="submit"
       >
-        <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 inline-block text-transparent bg-clip-text normal-login-text-res ">
-          Log in
-        </span>
+        <span className="login-button-span">Log in</span>
       </button>
     </form>
   );

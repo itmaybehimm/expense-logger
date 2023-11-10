@@ -7,10 +7,7 @@ const HomeButtonLoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div
-      id="login-page-home-button"
-      className="z-10 w-12 2xl:w-20 4k:w-32 aspect-square rounded-full absolute top-4 left-4 cursor-pointer transition-all bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:bg-none group dark:bg-none "
-    >
+    <div className="z-10 w-12 2xl:w-20 4k:w-32 aspect-square rounded-full absolute top-4 left-4 cursor-pointer transition-all bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:bg-none group dark:bg-none ">
       <button
         className=" flex items-center justify-center w-full h-full relative "
         onClick={() => {

@@ -18,6 +18,8 @@ export default {
         "cs-black": "hsl(var(--color-bgblack) / <alpha-value>)",
         purple: "hsl(var(--color-accent-purple) / <alpha-value>)",
         pink: "hsl(var(--color-accent-pink) / <alpha-value>)",
+        red: "hsl(var(--color-accent-red) / <alpha-value>)",
+        green: "hsl(var(--color-accent-green) / <alpha-value>)",
       },
       screens: {
         "4k": "3840px",
@@ -25,7 +27,8 @@ export default {
         // => @media (min-width: 992px) { ... }
       },
       boxShadow: {
-        "neon-full": "0 0 30px 30px rgba(206,70,206,0.4)",
+        "neon-full-xl": "0 0 30px 30px rgba(206,70,206,0.4)",
+        "neon-full-sm": "0 0 30px 10px rgba(206,70,206,0.3)",
         "black-full": "0 0 30px 5px rgba(0,0,0,0.2)",
       },
     },

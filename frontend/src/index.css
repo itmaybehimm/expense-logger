@@ -10,8 +10,14 @@
     --color-bgblack: 0deg 0% 0%;
     --color-accent-purple: 258deg 90% 66%;
     --color-accent-violet: 292deg 84% 61%;
+    --color-accent-red : 1deg 81% 53%;
+    --color-accent-green : 107deg 100% 57%
   }
-}
+  @media (prefers-color-scheme:dark){ 
+   :root{
+    --color-accent-red : 0deg 100% 50%
+  }
+}}
 
 
 @layer components {
@@ -22,6 +28,26 @@
     @apply text-xs xl:text-base 2xl:text-xl 4k:text-3xl
   }
   .input-login-text-res{
-    @apply text-sm md:text-base lg:text-xl 2k:text-3xl 4k:text-4xl
+    @apply text-sm md:text-base lg:text-xl 2k:text-3xl 4k:text-5xl
   }
+  .small-login-text-res{
+    @apply  text-xs 2k:text-xl 4k:text-2xl mt-2
+  }
+  .login-button{ 
+    @apply bg-cs-white rounded-full hover:scale-110 dark:bg-cs-white/20 hover:brightness-90 dark:hover:bg-cs-white/100 transition-all 
+  }
+
+  @media (prefers-color-scheme:dark){ 
+    .login-button:hover .login-button-span{
+    @apply bg-gradient-to-r from-violet-500 to-fuchsia-500 inline-block text-transparent bg-clip-text
+  }
+}
+
+  .login-button-span{
+    @apply bg-gradient-to-r from-violet-500 to-fuchsia-500 inline-block text-transparent bg-clip-text dark:bg-none dark:text-cs-white 
+  }
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  color-scheme: dark;
 }

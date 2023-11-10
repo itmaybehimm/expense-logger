@@ -19,7 +19,7 @@ class UserView(APIView):
             # Apply IsAuthenticated for DELETE requests
             return [IsAuthenticated()]
         if self.request.method == 'GET':
-            return [IsVerified()]
+            return [IsAuthenticated()]
         if self.request.method == 'PATCH':
             return [IsVerified()]
         if self.request.method == 'POST':
@@ -34,11 +34,11 @@ class UserView(APIView):
         data = request.data
         if (data.get('username')):
             if not username_valid(data.get('username')):
-                return Response({'message': 'username invalid'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Username invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
         if (data.get('password')):
             if not password_valid(data.get('password')):
-                return Response({'message': 'password must contain one lower case, one upper case, one digit and one special character'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Password must contain one lower case, one upper case, one digit and one special character'}, status=status.HTTP_400_BAD_REQUEST)
 
         user_serializer = UserSerializer(data=data)
 
@@ -56,11 +56,11 @@ class UserView(APIView):
 
         if (data.get('username')):
             if not username_valid(data.get('username')):
-                return Response({'message': 'username invalid'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Username invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
         if (data.get('password')):
             if not password_valid(data.get('password')):
-                return Response({'message': 'password must contain one lower case, one upper case, one digit and one special character'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Password must contain one lower case, one upper case, one digit and one special character'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = request.user
         user_serializer = UserSerializer(user, data=data, partial=True)
@@ -86,7 +86,7 @@ class OtpViewClass(APIView):
         user = User.objects.get(pk=request.user.id)
         user_profile = user.user_profile
         otp_created_on = user_profile.otp_created_on
-        allow_otp = True
+        allow_otp = False
         timedelta = 0
         # to check if created on is null or not
         if (not otp_created_on):
@@ -117,7 +117,7 @@ class OtpViewClass(APIView):
                 return Response({'message': 'OTP sent to email'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'message': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'message': 'otp has already been sent to email'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Otp has already been sent to email'}, status=status.HTTP_200_OK)
 
     def post(self, request):
         user = request.user
@@ -133,16 +133,16 @@ class OtpViewClass(APIView):
 
             # check if otp is provided or not
             if (not otp):
-                return Response({'message': f'otp not provided'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': f'Otp not provided'}, status=status.HTTP_400_BAD_REQUEST)
 
             if (len(otp) != 6):
-                return Response({'message': f'otp not valid'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': f'Otp not valid'}, status=status.HTTP_400_BAD_REQUEST)
 
             otp_sha = customSHA256(otp)
             saved_otp = user_profile.otp
 
             if (timedelta > 10):
-                return Response({'message': f'otp timeout'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': f'Otp is only valid for 10 minutes'}, status=status.HTTP_400_BAD_REQUEST)
 
             if (otp_sha == saved_otp):
                 user_profile.verified = True
@@ -151,7 +151,7 @@ class OtpViewClass(APIView):
 
             return Response({'message': f'otp incorrect'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'message': f'otp not requested'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': f'Otp has not been requested'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes([IsVerified])

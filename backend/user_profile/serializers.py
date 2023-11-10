@@ -7,6 +7,7 @@ from django.contrib.auth.hashers import make_password
 class UserProfileSerializer(serializers.ModelSerializer):
     # So that we dont need to input user data during form submission of new user
     # user = serializers.PrimaryKeyRelatedField(read_only=True)
+    # profile_pic = serializers.Field(read_only=True)
 
     class Meta:
         model = UserProfile
@@ -22,9 +23,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'user_profile',
-                  'password', 'dob', 'profile_pic')
+                  'password', 'dob', 'profile_pic', 'first_name', 'last_name')
         # So that we dont send password during user request
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {'password': {'write_only': True},
+                        'first_name': {'required': True},
+                        'last_name': {'required': True}}
 
     def create(self, validated_data):
         user_profile_data = {}

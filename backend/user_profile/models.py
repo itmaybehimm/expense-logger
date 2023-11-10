@@ -15,7 +15,7 @@ class UserProfile(models.Model):
     verified = models.BooleanField(default=False)
     otp_created_on = models.DateTimeField(null=True, default=None)
     password_reset = models.BooleanField(default=False)
-    dob = models.DateField()
+    dob = models.DateField(null=True)
     profile_pic = models.ImageField(null=True, upload_to='profile_pics/')
 
     def __str__(self):
